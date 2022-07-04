@@ -12,10 +12,12 @@ const sequelize = new Sequelize(DATABASE_URL);
 
 const food = foodModel(sequelize, DataTypes);
 const clothes = clothesModel(sequelize, DataTypes);
+const users = userModel(sequelize, DataTypes);
 
 module.exports = {
   db: sequelize,
-  users: userModel(sequelize, DataTypes),
+  // users: userModel(sequelize, DataTypes),
+  users: new Collection(users),
   food: new Collection(food),
   clothes: new Collection(clothes),
 }
