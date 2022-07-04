@@ -1,9 +1,10 @@
 'use strict';
 
-const { db } = require('./src/models');
+const { sequelize } = require('./src/models');
 const server = require('./src/server.js');
 
 
-db.sync().then(() => {
-  server.start(3000);
+sequelize.sync().then(() => {
+  console.log('Plugged into Database!')
+  server.start();
 });

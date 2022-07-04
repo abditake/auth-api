@@ -2,10 +2,26 @@
 
 const express = require('express');
 const dataModules = require('../models');
-const { users } = require('../models/users');
+const bearerAuth = require('../middleware/bearer');
+const permissions = require('../middleware/acl');
+
 const router = express.Router();
 
+router.param('model', (req, res, next) => {
+  const modelName = req.params.model;
+  if (dataModules[modelName]) {
+    req.model = dataModules[modelName];
+    next();
+  } else {
+    next('Invalid Model');
+  }
+});
 
+router.get('/:model', bearerAuth, permissions('read'), handleGetAll);
+router.get('/:model/:id', bearerAuth, permissions('read'), handleGetOne);
+router.post('/:model', bearerAuth, permissions('create'), handleCreate);
+router.put('/:model/:id', bearerAuth, permissions('update'), handleUpdate);
+router.delete('/:model/:id', bearerAuth, permissions('delete'), handleDelete);
 
 async function handleGetAll(req, res) {
   let allRecords = await req.model.get();
@@ -37,47 +53,5 @@ async function handleDelete(req, res) {
   res.status(200).json(deletedRecord);
 }
 
-async function handleSignup(req,res){
-  try {
-    let userRecord = await users.create(req.body);
-    const output = {
-      user: userRecord,
-      token: userRecord.token
-    };
-    res.status(201).json(output);
-  } catch (e) {
-    next(e.message)
-  }
-}
 
-async function handleSignin(req,res){
-  const user = {
-    user: req.user,
-    token: req.user.token
-  };
-  res.status(200).json(user);
-}
-
-async function handleUsers(req,res){
-  const userRecords = await users.findAll({});
-  const list = userRecords.map(user => user.username);
-  res.status(200).json(list);
-}
-
-
-async function handleSecret(req,res){
-  res.status(200).send('Welcome to the secret area')
-}
-
-
-module.exports ={
-  handleGetAll,
-  handleGetOne,
-  handleCreate,
-  handleUpdate,
-  handleDelete,
-  handleSignup,
-  handleSignin,
-  handleUsers,
-  handleSecret,
-};
+module.exports = router;
